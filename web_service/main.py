@@ -1,10 +1,11 @@
-from flask import Flask, request, current_app,g,render_template
+from flask import Flask, request, current_app,g,render_template, abort
 import shelve
 import time
 import json
 
 app = Flask(__name__)
-app.config['AVERAGE_COUNT'] = 20
+app.config['AVERAGE_COUNT'] = 20 # number of sample points for moving average
+app.config['API_KEY'] = 'super_secure_password'
 
 def get_db():
     db = getattr(g, '_database', None)
@@ -12,6 +13,7 @@ def get_db():
         db = g._database = shelve.open('beer_daemon.db')
     return db
 
+# crude conversion table from distance to number of cans
 def dist_to_beers(dist):
 	dist = float(dist)
 	if(dist > 45):
@@ -30,6 +32,7 @@ def dist_to_beers(dist):
 		return 6
 	return 7
 
+# compute a running average of the temperature readings
 def average_temp(db):
 	idx = int(db["idx"])
 	avgCount = int(app.config['AVERAGE_COUNT'])
@@ -46,22 +49,27 @@ def average_temp(db):
 	average = average / nonNullCount
 	return average
 
-
-@app.teardown_appcontext
-def teardown_db(exception):
-    db = getattr(g, '_database', None)
-    if db is not None:
-        db.close()
-
+# Setup shelve
 @app.before_first_request
 def setup_db():
 	db = get_db()
 	for x in range(0,app.config['AVERAGE_COUNT']):
 		db["temp" + str(x)] = None
 	db["idx"] = 0;
+# Teardown shelve
+@app.teardown_appcontext
+def teardown_db(exception):
+    db = getattr(g, '_database', None)
+    if db is not None:
+        db.close()
 
+# Flask Routes
+
+#
 @app.route("/update_temp")
 def update_temp():
+	if request.headers.get("api_key") != app.config['API_KEY']:
+		abort(403)
 	db = get_db()
 	idx = int(db["idx"])
 	db["temp" + str(idx)] = request.headers.get("temp")
@@ -71,6 +79,8 @@ def update_temp():
 
 @app.route("/update_dist")
 def update_dist():
+	if request.headers.get("api_key") != app.config['API_KEY']:
+		abort(403)
 	db = get_db()
 	db["dist"] = request.headers.get("dist")
 	return ""

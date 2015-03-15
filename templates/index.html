@@ -13,7 +13,7 @@
 			            url: '/poll',
 			            success: function (data) {
 			                $("#temp").html(data["temp"] + "°C")
-			                $("#dist").html(data["dist"])
+			                $("#beers").html(data["beers"])
 			            },
 			            complete: poll
 			        });
@@ -23,31 +23,56 @@
 		<style type="text/css">
 			body {
 				font-family: 'Open Sans', serif;
+				text-align: center;
 			}
 			div#container {
-				width: 500px;
+				width: 300px;
 				margin: auto;
 			}
-			div#temp {
+			div.display {
 				width: 300px;
-				height: 300px;
+				height: 200px;
 				border-radius: 150px;
 				background: #0A0;
-				font-size: 4em;
+				margin: 10px;
 				color: #FFF;
 				font-weight: bold;
 				text-align: center;
-				line-height: 300px;
+				padding-top: 100px;
 				text-shadow: 0px 0px 10px rgba(0,0,0,0.3);
+			}
+			span.caption {
+				font-size: 1em;
+				display: block;
+				text-transform: uppercase;
+				font-weight: 100;
+				letter-spacing: 5px;
 
+			}
+			span#temp {
+				font-size: 4em;
+
+			}
+			span#beers {
+				font-size: 8em;
+			}
+			div#beers-display {
+				padding-top: 60px;
+				height: 240px;
 			}
 		</style>
 	</head>
 	<body>
 		<div id="container">
 		 	<h1>Beer Daemon</h1>
-		 	<div id="dist">{{dist}}</div>
-		 	<div id="temp">{{temp}}</div>
+		 	<div class="display" id="beers-display">
+		 		<span class="caption">Beers</span>
+		 		<span id="beers"></span>
+		 	</div>
+		 	<div class="display">
+		 		<span class="caption">Temperature</span>
+		 		<span id="temp"></span>
+		 	</div>
 		</div>
 	</body>
 </html>
